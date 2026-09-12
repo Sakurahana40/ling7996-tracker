@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LING 7996 — Semester tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EFEDE4;
+    --surface:#FFFFFF;
+    --ink:#1B2A3D;
+    --ink-soft:#57647A;
+    --accent:#A9792E;
+    --accent-soft:#F2E7D2;
+    --success:#3F6B4F;
+    --success-soft:#E2ECE4;
+    --progress:#7A6FB0;
+    --progress-soft:#EDEAF6;
+    --danger:#A6402F;
+    --danger-soft:#F5E4DF;
+    --border:#DAD5C6;
+    --border-strong:#C2BBA6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px;}
+  header.page{margin-bottom:40px;}
+  .eyebrow{font-size:13px;color:var(--ink-soft);margin:0 0 6px;}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:38px;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{color:var(--ink-soft);font-size:15px;margin:0;}
+
+  .progress-band{
+    display:flex;align-items:center;gap:20px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px 24px;
+    margin-top:28px;
+  }
+  .progress-band .ring{
+    position:relative;width:56px;height:56px;flex-shrink:0;
+  }
+  .progress-band .ring svg{transform:rotate(-90deg);}
+  .progress-band .ring .pct{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:600;
+  }
+  .progress-band .label{font-size:14px;color:var(--ink-soft);}
+  .progress-band .label strong{color:var(--ink);font-weight:500;}
+
+  section{margin-top:48px;}
+  h2{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-size:22px;
+    margin:0 0 4px;
+  }
+  .section-note{color:var(--ink-soft);font-size:14px;margin:0 0 20px;}
+
+  .task-grid{display:flex;flex-direction:column;gap:12px;}
+  .task-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:18px 20px;
+  }
+  .task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .task-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .task-title h3{font-size:16px;font-weight:600;margin:0;}
+  .task-meta{font-size:13px;color:var(--ink-soft);}
+  .weight-pill{
+    font-size:12px;color:var(--ink-soft);
+    border:1px solid var(--border-strong);
+    border-radius:20px;padding:2px 10px;
+    white-space:nowrap;
+  }
+  .status-select{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .status-select[data-status="done"]{background:var(--success-soft);border-color:var(--success);color:var(--success);}
+  .status-select[data-status="in-progress"]{background:var(--progress-soft);border-color:var(--progress);color:var(--progress);}
+  .status-select[data-status="not-started"]{background:transparent;}
+  .task-notes{
+    width:100%;
+    margin-top:12px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    background:#FBFAF6;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:44px;
+  }
+  .task-notes:focus{outline:2px solid var(--accent);outline-offset:1px;}
+
+  .week-list{display:flex;flex-direction:column;gap:2px;}
+  .week-row{
+    display:grid;
+    grid-template-columns:110px 130px 1fr;
+    gap:16px;
+    padding:14px 16px;
+    border-radius:10px;
+    align-items:start;
+  }
+  .week-row:nth-child(odd){background:rgba(255,255,255,0.5);}
+  .week-row.current{
+    background:var(--accent-soft);
+    border:1px solid var(--accent);
+  }
+  .week-row.holiday{opacity:0.6;}
+  .week-num{font-weight:600;font-size:14px;}
+  .week-dates{font-size:13px;color:var(--ink-soft);}
+  .week-focus{font-size:14px;}
+  .week-focus ul{margin:0;padding-left:18px;}
+  .week-focus li{margin-bottom:2px;}
+  .current-tag{
+    display:inline-block;
+    font-size:11px;
+    background:var(--accent);
+    color:#fff;
+    border-radius:20px;
+    padding:1px 8px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+  .due-tag{
+    display:inline-block;
+    font-size:11px;
+    color:var(--danger);
+    border:1px solid var(--danger);
+    border-radius:20px;
+    padding:1px 8px;
+    margin-top:6px;
+  }
+
+  footer.note{
+    margin-top:48px;
+    font-size:12px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--border);
+    padding-top:16px;
+  }
+
+  @media (max-width:640px){
+    .week-row{grid-template-columns:1fr;gap:4px;}
+    h1{font-size:30px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page">
+    <p class="eyebrow">LING 7996 — Capstone · Fall 2026</p>
+    <h1>Semester tracker</h1>
+    <p class="sub">Dr. Jimin Kahng · Weeks run Aug 24 – Dec 11, 2026</p>
+
+    <div class="progress-band">
+      <div class="ring">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <circle id="progressCircle" cx="28" cy="28" r="24" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-dasharray="150.8" stroke-dashoffset="150.8"/>
+        </svg>
+        <div class="pct" id="progressPct">0%</div>
+      </div>
+      <div class="label" id="progressLabel">Loading your progress…</div>
+    </div>
+  </header>
+
+  <section id="tasks">
+    <h2>Deliverables</h2>
+    <p class="section-note">Set a status and jot notes as you go — saved automatically on this device.</p>
+    <div class="task-grid" id="taskGrid"></div>
+  </section>
+
+  <section id="calendar">
+    <h2>Weekly calendar</h2>
+    <p class="section-note">This week is highlighted based on today's date.</p>
+    <div class="week-list" id="weekList"></div>
+  </section>
+
+  <footer class="note">
+    Built from the LING 7996 Fall 2026 syllabus. Confirm exact schematic due date and any updates directly with Dr. Kahng — "the instructor reserves the right to modify this syllabus as needed."
+  </footer>
+
+</div>
+
+<script>
+const TASKS = [
+  { id:'schematic', title:'Comps exam schematic', meta:'Topic areas, committee, study schedule, tentative exam date', weight:'40%', due:'Recommended by end of Week 6 (Oct 2) — confirm exact date' },
+  { id:'biblio', title:'Annotated bibliography', meta:'Compilation of materials for dissertation topic', weight:'30%', due:'Due Oct 16' },
+  { id:'abstract', title:'Abstract', meta:'500 words — introduction, research questions, hypothesis', weight:'10%', due:'Due Nov 6' },
+  { id:'teaching', title:'Teaching philosophy', meta:'~500 words on strengths and remote-learning contingencies', weight:'10%', due:'Due Dec 8' },
+  { id:'service', title:'Service portfolio', meta:'Compilation of future service activities for job portfolio', weight:'10%', due:'Due Dec 8' },
+];
+
+const WEEKS = [
+  { n:1, dates:'Aug 24 – 28', focus:['Introductions, course requirements, ethical considerations','Understand syllabus, comps, and dissertation procedure','Start identifying dissertation topic'] },
+  { n:2, dates:'Aug 31 – Sep 4', focus:['Research for LING 7950 (comps part 1)','Identify the three comps areas based on dissertation topic'] },
+  { n:3, dates:'Sep 7 – 11', focus:['Research for LING 7950 (comps part 1)','Find faculty committee members aligned with comps areas','Start reading lists and annotated bibliography'] },
+  { n:4, dates:'Sep 14 – 18', focus:['Research for LING 7950 (comps part 1)','Create reading lists','Work on annotated bibliography','Practice comprehensive exam taking'] },
+  { n:5, dates:'Sep 21 – 25', focus:['Research for LING 7950 (comps part 1)','Finalize reading lists with committee approval','Work on annotated bibliography'] },
+  { n:6, dates:'Sep 28 – Oct 2', focus:['Research for LING 7950 (comps part 1)','Identify dissertation topics from areas of interest','Work on annotated bibliography'] },
+  { n:7, dates:'Oct 5 – 9', focus:['Research for LING 7998 (dissertation topic)','Identify research questions to address literature gaps','Start abstract; continue annotated bibliography'] },
+  { n:8, dates:'Oct 12 – 16', focus:['Research for LING 7998','Add fourth faculty committee member','How to write an abstract'], due:'Annotated bibliography due Oct 16' },
+  { n:9, dates:'Oct 19 – 23', focus:['Research for LING 7998','Develop research design to address research questions'] },
+  { n:10, dates:'Oct 26 – 30', focus:['Research for LING 7998','Continue developing research design'] },
+  { n:11, dates:'Nov 2 – 6', focus:['Research for dissertation plan of action','How to write a research paper'], due:'Abstract due Nov 6' },
+  { n:12, dates:'Nov 9 – 13', focus:['Teaching philosophy & service activities'] },
+  { n:13, dates:'Nov 16 – 20', focus:['Teaching philosophy & service activities'] },
+  { n:14, dates:'Nov 23 – 27', focus:['Thanksgiving holidays'], holiday:true },
+  { n:15, dates:'Nov 30 – Dec 4', focus:['Finalize all research, teaching, and service documents'], due:'All documents due Dec 8 (Blackboard or email)' },
+  { n:16, dates:'Dec 7 – 11', focus:['Final exam week'] },
+];
+
+// --- Determine current week from today's date ---
+function weekIndexForToday(){
+  const today = new Date('2026-09-11T12:00:00');
+  const ranges = [
+    ['2026-08-24','2026-08-28'],['2026-08-31','2026-09-04'],['2026-09-07','2026-09-11'],
+    ['2026-09-14','2026-09-18'],['2026-09-21','2026-09-25'],['2026-09-28','2026-10-02'],
+    ['2026-10-05','2026-10-09'],['2026-10-12','2026-10-16'],['2026-10-19','2026-10-23'],
+    ['2026-10-26','2026-10-30'],['2026-11-02','2026-11-06'],['2026-11-09','2026-11-13'],
+    ['2026-11-16','2026-11-20'],['2026-11-23','2026-11-27'],['2026-11-30','2026-12-04'],
+    ['2026-12-07','2026-12-11'],
+  ];
+  for(let i=0;i<ranges.length;i++){
+    const [s,e] = ranges[i];
+    if(today >= new Date(s+'T00:00:00') && today <= new Date(e+'T23:59:59')) return i+1;
+  }
+  return null;
+}
+const currentWeek = weekIndexForToday();
+
+// --- Render weeks ---
+const weekList = document.getElementById('weekList');
+WEEKS.forEach(w=>{
+  const row = document.createElement('div');
+  row.className = 'week-row' + (w.n===currentWeek ? ' current' : '') + (w.holiday ? ' holiday' : '');
+  row.innerHTML = `
+    <div class="week-num">Week ${w.n}${w.n===currentWeek ? '<span class="current-tag">This week</span>' : ''}</div>
+    <div class="week-dates">${w.dates}</div>
+    <div class="week-focus">
+      <ul>${w.focus.map(f=>`<li>${f}</li>`).join('')}</ul>
+      ${w.due ? `<span class="due-tag">${w.due}</span>` : ''}
+    </div>
+  `;
+  weekList.appendChild(row);
+});
+
+// --- Task tracker with persistence ---
+const STORAGE_KEY = 'ling7996-tracker-state';
+let state = {};
+
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY);
+    state = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){
+    state = {};
+  }
+  TASKS.forEach(t=>{ if(!state[t.id]) state[t.id] = { status:'not-started', notes:'' }; });
+  renderTasks();
+  updateProgress();
+}
+
+async function saveState(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Could not save', e);
+  }
+}
+
+function renderTasks(){
+  const grid = document.getElementById('taskGrid');
+  grid.innerHTML = '';
+  TASKS.forEach(t=>{
+    const s = state[t.id];
+    const card = document.createElement('div');
+    card.className = 'task-card';
+    card.innerHTML = `
+      <div class="task-top">
+        <div class="task-title">
+          <h3>${t.title}</h3>
+          <span class="weight-pill">${t.weight}</span>
+        </div>
+        <select class="status-select" data-id="${t.id}" data-status="${s.status}">
+          <option value="not-started" ${s.status==='not-started'?'selected':''}>Not started</option>
+          <option value="in-progress" ${s.status==='in-progress'?'selected':''}>In progress</option>
+          <option value="done" ${s.status==='done'?'selected':''}>Done</option>
+        </select>
+      </div>
+      <div class="task-meta">${t.meta} · ${t.due}</div>
+      <textarea class="task-notes" data-id="${t.id}" placeholder="Notes — committee feedback, sources, ideas…">${s.notes}</textarea>
+    `;
+    grid.appendChild(card);
+  });
+
+  grid.querySelectorAll('.status-select').forEach(sel=>{
+    sel.addEventListener('change', e=>{
+      const id = e.target.dataset.id;
+      state[id].status = e.target.value;
+      e.target.dataset.status = e.target.value;
+      saveState();
+      updateProgress();
+    });
+  });
+  grid.querySelectorAll('.task-notes').forEach(ta=>{
+    ta.addEventListener('input', e=>{
+      const id = e.target.dataset.id;
+      state[id].notes = e.target.value;
+    });
+    ta.addEventListener('blur', saveState);
+  });
+}
+
+function updateProgress(){
+  const total = TASKS.length;
+  const done = TASKS.filter(t=>state[t.id].status==='done').length;
+  const inProgress = TASKS.filter(t=>state[t.id].status==='in-progress').length;
+  const pct = Math.round((done/total)*100);
+  const circumference = 150.8;
+  const offset = circumference - (circumference * pct / 100);
+  document.getElementById('progressCircle').style.strokeDashoffset = offset;
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressLabel').innerHTML =
+    `<strong>${done} of ${total}</strong> deliverables done${inProgress ? `, <strong>${inProgress}</strong> in progress` : ''}.`;
+}
+
+loadState();
+</script>
+</body>
+</html>
